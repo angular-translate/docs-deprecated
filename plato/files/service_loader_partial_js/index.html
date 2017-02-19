@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - service/loader-partial.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/es-analysis/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>service/loader-partial.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">70.01</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">533</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">45.41</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">2.33</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">angular.module(&#039;pascalprecht.translate&#039;)
+/**
+ * @ngdoc object
+ * @name pascalprecht.translate.$translatePartialLoaderProvider
+ *
+ * @description
+ * By using a $translatePartialLoaderProvider you can configure a list of a needed
+ * translation parts directly during the configuration phase of your application&#039;s
+ * lifetime. All parts you add by using this provider would be loaded by
+ * angular-translate at the startup as soon as possible.
+ */
+  .provider(&#039;$translatePartialLoader&#039;, $translatePartialLoader);
+
+function $translatePartialLoader() {
+
+  &#039;use strict&#039;;
+
+  /**
+   * @constructor
+   * @name Part
+   *
+   * @description
+   * Represents Part object to add and set parts at runtime.
+   */
+  function Part(name, priority) {
+    this.name = name;
+    this.isActive = true;
+    this.tables = {};
+    this.priority = priority || 0;
+    this.langPromises = {};
+  }
+
+  /**
+   * @name parseUrl
+   * @method
+   *
+   * @description
+   * Returns a parsed url template string and replaces given target lang
+   * and part name it.
+   *
+   * @param {string|function} urlTemplate - Either a string containing an url pattern (with
+   *                                        &#039;{part}&#039; and &#039;{lang}&#039;) or a function(part, lang)
+   *                                        returning a string.
+   * @param {string} targetLang - Language key for language to be used.
+   * @return {string} Parsed url template string
+   */
+  Part.prototype.parseUrl = function (urlTemplate, targetLang) {
+    if (angular.isFunction(urlTemplate)) {
+      return urlTemplate(this.name, targetLang);
+    }
+    return urlTemplate.replace(/\{part\}/g, this.name).replace(/\{lang\}/g, targetLang);
+  };
+
+  Part.prototype.getTable = function (lang, $q, $http, $httpOptions, urlTemplate, errorHandler) {
+
+    //locals
+    var self = this;
+    var lastLangPromise = this.langPromises[lang];
+    var deferred = $q.defer();
+
+    //private helper helpers
+    var fetchData = function () {
+      return $http(
+        angular.extend({
+            method : &#039;GET&#039;,
+            url : self.parseUrl(urlTemplate, lang)
+          },
+          $httpOptions)
+      );
+    };
+
+    //private helper
+    var handleNewData = function (data) {
+      self.tables[lang] = data;
+      deferred.resolve(data);
+    };
+
+    //private helper
+    var rejectDeferredWithPartName = function () {
+      deferred.reject(self.name);
+    };
+
+    //private helper
+    var tryGettingThisTable = function () {
+      //data fetching logic
+      fetchData().then(
+        function (result) {
+          handleNewData(result.data);
+        },
+        function (errorResponse) {
+          if (errorHandler) {
+            errorHandler(self.name, lang, errorResponse).then(handleNewData, rejectDeferredWithPartName);
+          } else {
+            rejectDeferredWithPartName();
+          }
+        });
+    };
+
+    //loading logic
+    if (!this.tables[lang]) {
+      //let&#039;s try loading the data
+      if (!lastLangPromise) {
+        //this is the first request - just go ahead and hit the server
+        tryGettingThisTable();
+      } else {
+        //this is an additional request after one or more unfinished or failed requests
+        //chain the deferred off the previous request&#039;s promise so that this request conditionally executes
+        //if the previous request succeeds then the result will be passed through, but if it fails then this request will try again and hit the server
+        lastLangPromise.then(deferred.resolve, tryGettingThisTable);
+      }
+      //retain a reference to the last promise so we can continue the chain if another request is made before any succeed
+      //you can picture the promise chain as a singly-linked list (formed by the .then handler queues) that&#039;s traversed by the execution context
+      this.langPromises[lang] = deferred.promise;
+    }
+    else {
+      //the part has already been loaded - if lastLangPromise is also undefined then the table has been populated using setPart
+      //this breaks the promise chain because we&#039;re not tying langDeferred&#039;s outcome to a previous call&#039;s promise handler queues, but we don&#039;t care because there&#039;s no asynchronous execution context to keep track of anymore
+      deferred.resolve(this.tables[lang]);
+    }
+    return deferred.promise;
+  };
+
+  var parts = {};
+
+  function hasPart(name) {
+    return Object.prototype.hasOwnProperty.call(parts, name);
+  }
+
+  function isStringValid(str) {
+    return angular.isString(str) &amp;&amp; str !== &#039;&#039;;
+  }
+
+  function isPartAvailable(name) {
+    if (!isStringValid(name)) {
+      throw new TypeError(&#039;Invalid type of a first argument, a non-empty string expected.&#039;);
+    }
+
+    return (hasPart(name) &amp;&amp; parts[name].isActive);
+  }
+
+  function deepExtend(dst, src) {
+    for (var property in src) {
+      if (src[property] &amp;&amp; src[property].constructor &amp;&amp;
+        src[property].constructor === Object) {
+        dst[property] = dst[property] || {};
+        deepExtend(dst[property], src[property]);
+      } else {
+        dst[property] = src[property];
+      }
+    }
+    return dst;
+  }
+
+  function getPrioritizedParts() {
+    var prioritizedParts = [];
+    for (var part in parts) {
+      if (parts[part].isActive) {
+        prioritizedParts.push(parts[part]);
+      }
+    }
+    prioritizedParts.sort(function (a, b) {
+      return a.priority - b.priority;
+    });
+    return prioritizedParts;
+  }
+
+
+  /**
+   * @ngdoc function
+   * @name pascalprecht.translate.$translatePartialLoaderProvider#addPart
+   * @methodOf pascalprecht.translate.$translatePartialLoaderProvider
+   *
+   * @description
+   * Registers a new part of the translation table to be loaded once the
+   * `angular-translate` gets into runtime phase. It does not actually load any
+   * translation data, but only registers a part to be loaded in the future.
+   *
+   * @param {string} name A name of the part to add
+   * @param {int} [priority=0] Sets the load priority of this part.
+   *
+   * @returns {object} $translatePartialLoaderProvider, so this method is chainable
+   * @throws {TypeError} The method could throw a **TypeError** if you pass the param
+   * of the wrong type. Please, note that the `name` param has to be a
+   * non-empty **string**.
+   */
+  this.addPart = function (name, priority) {
+    if (!isStringValid(name)) {
+      throw new TypeError(&#039;Couldn\&#039;t add part, part name has to be a string!&#039;);
+    }
+
+    if (!hasPart(name)) {
+      parts[name] = new Part(name, priority);
+    }
+    parts[name].isActive = true;
+
+    return this;
+  };
+
+  /**
+   * @ngdocs function
+   * @name pascalprecht.translate.$translatePartialLoaderProvider#setPart
+   * @methodOf pascalprecht.translate.$translatePartialLoaderProvider
+   *
+   * @description
+   * Sets a translation table to the specified part. This method does not make the
+   * specified part available, but only avoids loading this part from the server.
+   *
+   * @param {string} lang A language of the given translation table
+   * @param {string} part A name of the target part
+   * @param {object} table A translation table to set to the specified part
+   *
+   * @return {object} $translatePartialLoaderProvider, so this method is chainable
+   * @throws {TypeError} The method could throw a **TypeError** if you pass params
+   * of the wrong type. Please, note that the `lang` and `part` params have to be a
+   * non-empty **string**s and the `table` param has to be an object.
+   */
+  this.setPart = function (lang, part, table) {
+    if (!isStringValid(lang)) {
+      throw new TypeError(&#039;Couldn\&#039;t set part.`lang` parameter has to be a string!&#039;);
+    }
+    if (!isStringValid(part)) {
+      throw new TypeError(&#039;Couldn\&#039;t set part.`part` parameter has to be a string!&#039;);
+    }
+    if (typeof table !== &#039;object&#039; || table === null) {
+      throw new TypeError(&#039;Couldn\&#039;t set part. `table` parameter has to be an object!&#039;);
+    }
+
+    if (!hasPart(part)) {
+      parts[part] = new Part(part);
+      parts[part].isActive = false;
+    }
+
+    parts[part].tables[lang] = table;
+    return this;
+  };
+
+  /**
+   * @ngdoc function
+   * @name pascalprecht.translate.$translatePartialLoaderProvider#deletePart
+   * @methodOf pascalprecht.translate.$translatePartialLoaderProvider
+   *
+   * @description
+   * Removes the previously added part of the translation data. So, `angular-translate` will not
+   * load it at the startup.
+   *
+   * @param {string} name A name of the part to delete
+   *
+   * @returns {object} $translatePartialLoaderProvider, so this method is chainable
+   *
+   * @throws {TypeError} The method could throw a **TypeError** if you pass the param of the wrong
+   * type. Please, note that the `name` param has to be a non-empty **string**.
+   */
+  this.deletePart = function (name) {
+    if (!isStringValid(name)) {
+      throw new TypeError(&#039;Couldn\&#039;t delete part, first arg has to be string.&#039;);
+    }
+
+    if (hasPart(name)) {
+      parts[name].isActive = false;
+    }
+
+    return this;
+  };
+
+
+  /**
+   * @ngdoc function
+   * @name pascalprecht.translate.$translatePartialLoaderProvider#isPartAvailable
+   * @methodOf pascalprecht.translate.$translatePartialLoaderProvider
+   *
+   * @description
+   * Checks if the specific part is available. A part becomes available after it was added by the
+   * `addPart` method. Available parts would be loaded from the server once the `angular-translate`
+   * asks the loader to that.
+   *
+   * @param {string} name A name of the part to check
+   *
+   * @returns {boolean} Returns **true** if the part is available now and **false** if not.
+   *
+   * @throws {TypeError} The method could throw a **TypeError** if you pass the param of the wrong
+   * type. Please, note that the `name` param has to be a non-empty **string**.
+   */
+  this.isPartAvailable = isPartAvailable;
+
+  /**
+   * @ngdoc object
+   * @name pascalprecht.translate.$translatePartialLoader
+   *
+   * @requires $q
+   * @requires $http
+   * @requires $injector
+   * @requires $rootScope
+   * @requires $translate
+   *
+   * @description
+   *
+   * @param {object} options Options object
+   *
+   * @throws {TypeError}
+   */
+  this.$get = [&#039;$rootScope&#039;, &#039;$injector&#039;, &#039;$q&#039;, &#039;$http&#039;,
+    function ($rootScope, $injector, $q, $http) {
+
+      /**
+       * @ngdoc event
+       * @name pascalprecht.translate.$translatePartialLoader#$translatePartialLoaderStructureChanged
+       * @eventOf pascalprecht.translate.$translatePartialLoader
+       * @eventType broadcast on root scope
+       *
+       * @description
+       * A $translatePartialLoaderStructureChanged event is called when a state of the loader was
+       * changed somehow. It could mean either some part is added or some part is deleted. Anyway when
+       * you get this event the translation table is not longer current and has to be updated.
+       *
+       * @param {string} name A name of the part which is a reason why the event was fired
+       */
+
+      var service = function (options) {
+        if (!isStringValid(options.key)) {
+          throw new TypeError(&#039;Unable to load data, a key is not a non-empty string.&#039;);
+        }
+
+        if (!isStringValid(options.urlTemplate) &amp;&amp; !angular.isFunction(options.urlTemplate)) {
+          throw new TypeError(&#039;Unable to load data, a urlTemplate is not a non-empty string or not a function.&#039;);
+        }
+
+        var errorHandler = options.loadFailureHandler;
+        if (errorHandler !== undefined) {
+          if (!angular.isString(errorHandler)) {
+            throw new Error(&#039;Unable to load data, a loadFailureHandler is not a string.&#039;);
+          } else {
+            errorHandler = $injector.get(errorHandler);
+          }
+        }
+
+        var loaders = [],
+          prioritizedParts = getPrioritizedParts();
+
+        angular.forEach(prioritizedParts, function (part) {
+          loaders.push(
+            part.getTable(options.key, $q, $http, options.$http, options.urlTemplate, errorHandler)
+          );
+          part.urlTemplate = options.urlTemplate;
+        });
+
+        return $q.all(loaders)
+          .then(function () {
+            var table = {};
+            prioritizedParts = getPrioritizedParts();
+            angular.forEach(prioritizedParts, function (part) {
+              deepExtend(table, part.tables[options.key]);
+            });
+            return table;
+          }, function () {
+            return $q.reject(options.key);
+          });
+      };
+
+      /**
+       * @ngdoc function
+       * @name pascalprecht.translate.$translatePartialLoader#addPart
+       * @methodOf pascalprecht.translate.$translatePartialLoader
+       *
+       * @description
+       * Registers a new part of the translation table. This method does not actually perform any xhr
+       * requests to get translation data. The new parts will be loaded in order of priority from the server next time
+       * `angular-translate` asks the loader to load translations.
+       *
+       * @param {string} name A name of the part to add
+       * @param {int} [priority=0] Sets the load priority of this part.
+       *
+       * @returns {object} $translatePartialLoader, so this method is chainable
+       *
+       * @fires {$translatePartialLoaderStructureChanged} The $translatePartialLoaderStructureChanged
+       * event would be fired by this method in case the new part affected somehow on the loaders
+       * state. This way it means that there are a new translation data available to be loaded from
+       * the server.
+       *
+       * @throws {TypeError} The method could throw a **TypeError** if you pass the param of the wrong
+       * type. Please, note that the `name` param has to be a non-empty **string**.
+       */
+      service.addPart = function (name, priority) {
+        if (!isStringValid(name)) {
+          throw new TypeError(&#039;Couldn\&#039;t add part, first arg has to be a string&#039;);
+        }
+
+        if (!hasPart(name)) {
+          parts[name] = new Part(name, priority);
+          $rootScope.$emit(&#039;$translatePartialLoaderStructureChanged&#039;, name);
+        } else if (!parts[name].isActive) {
+          parts[name].isActive = true;
+          $rootScope.$emit(&#039;$translatePartialLoaderStructureChanged&#039;, name);
+        }
+
+        return service;
+      };
+
+      /**
+       * @ngdoc function
+       * @name pascalprecht.translate.$translatePartialLoader#deletePart
+       * @methodOf pascalprecht.translate.$translatePartialLoader
+       *
+       * @description
+       * Deletes the previously added part of the translation data. The target part could be deleted
+       * either logically or physically. When the data is deleted logically it is not actually deleted
+       * from the browser, but the loader marks it as not active and prevents it from affecting on the
+       * translations. If the deleted in such way part is added again, the loader will use the
+       * previously loaded data rather than loading it from the server once more time. But if the data
+       * is deleted physically, the loader will completely remove all information about it. So in case
+       * of recycling this part will be loaded from the server again.
+       *
+       * @param {string} name A name of the part to delete
+       * @param {boolean=} [removeData=false] An indicator if the loader has to remove a loaded
+       * translation data physically. If the `removeData` if set to **false** the loaded data will not be
+       * deleted physically and might be reused in the future to prevent an additional xhr requests.
+       *
+       * @returns {object} $translatePartialLoader, so this method is chainable
+       *
+       * @fires {$translatePartialLoaderStructureChanged} The $translatePartialLoaderStructureChanged
+       * event would be fired by this method in case a part deletion process affects somehow on the
+       * loaders state. This way it means that some part of the translation data is now deprecated and
+       * the translation table has to be recompiled with the remaining translation parts.
+       *
+       * @throws {TypeError} The method could throw a **TypeError** if you pass some param of the
+       * wrong type. Please, note that the `name` param has to be a non-empty **string** and
+       * the `removeData` param has to be either **undefined** or **boolean**.
+       */
+      service.deletePart = function (name, removeData) {
+        if (!isStringValid(name)) {
+          throw new TypeError(&#039;Couldn\&#039;t delete part, first arg has to be string&#039;);
+        }
+
+        if (removeData === undefined) {
+          removeData = false;
+        } else if (typeof removeData !== &#039;boolean&#039;) {
+          throw new TypeError(&#039;Invalid type of a second argument, a boolean expected.&#039;);
+        }
+
+        if (hasPart(name)) {
+          var wasActive = parts[name].isActive;
+          if (removeData) {
+            var $translate = $injector.get(&#039;$translate&#039;);
+            var cache = $translate.loaderCache();
+            if (typeof(cache) === &#039;string&#039;) {
+              // getting on-demand instance of loader
+              cache = $injector.get(cache);
+            }
+            // Purging items from cache...
+            if (typeof(cache) === &#039;object&#039;) {
+              angular.forEach(parts[name].tables, function (value, key) {
+                cache.remove(parts[name].parseUrl(parts[name].urlTemplate, key));
+              });
+            }
+            delete parts[name];
+          } else {
+            parts[name].isActive = false;
+          }
+          if (wasActive) {
+            $rootScope.$emit(&#039;$translatePartialLoaderStructureChanged&#039;, name);
+          }
+        }
+
+        return service;
+      };
+
+      /**
+       * @ngdoc function
+       * @name pascalprecht.translate.$translatePartialLoader#isPartLoaded
+       * @methodOf pascalprecht.translate.$translatePartialLoader
+       *
+       * @description
+       * Checks if the registered translation part is loaded into the translation table.
+       *
+       * @param {string} name A name of the part
+       * @param {string} lang A key of the language
+       *
+       * @returns {boolean} Returns **true** if the translation of the part is loaded to the translation table and **false** if not.
+       *
+       * @throws {TypeError} The method could throw a **TypeError** if you pass the param of the wrong
+       * type. Please, note that the `name` and `lang` params have to be non-empty **string**.
+       */
+      service.isPartLoaded = function (name, lang) {
+        return angular.isDefined(parts[name]) &amp;&amp; angular.isDefined(parts[name].tables[lang]);
+      };
+
+      /**
+       * @ngdoc function
+       * @name pascalprecht.translate.$translatePartialLoader#getRegisteredParts
+       * @methodOf pascalprecht.translate.$translatePartialLoader
+       *
+       * @description
+       * Gets names of the parts that were added with the `addPart`.
+       *
+       * @returns {array} Returns array of registered parts, if none were registered then an empty array is returned.
+       */
+      service.getRegisteredParts = function () {
+        var registeredParts = [];
+        angular.forEach(parts, function (p) {
+          if (p.isActive) {
+            registeredParts.push(p.name);
+          }
+        });
+        return registeredParts;
+      };
+
+
+      /**
+       * @ngdoc function
+       * @name pascalprecht.translate.$translatePartialLoader#isPartAvailable
+       * @methodOf pascalprecht.translate.$translatePartialLoader
+       *
+       * @description
+       * Checks if a target translation part is available. The part becomes available just after it was
+       * added by the `addPart` method. Part&#039;s availability does not mean that it was loaded from the
+       * server, but only that it was added to the loader. The available part might be loaded next
+       * time the loader is called.
+       *
+       * @param {string} name A name of the part to delete
+       *
+       * @returns {boolean} Returns **true** if the part is available now and **false** if not.
+       *
+       * @throws {TypeError} The method could throw a **TypeError** if you pass the param of the wrong
+       * type. Please, note that the `name` param has to be a non-empty **string**.
+       */
+      service.isPartAvailable = isPartAvailable;
+
+      return service;
+
+    }];
+
+}
+
+$translatePartialLoader.displayName = &#039;$translatePartialLoader&#039;;</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ cyclomatic }} <br>
+    Length : {{ halstead.length }} <br>
+    Difficulty : {{ halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

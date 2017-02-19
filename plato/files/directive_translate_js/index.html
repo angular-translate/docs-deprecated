@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - directive/translate.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/es-analysis/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>directive/translate.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">66.54</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">356</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">38.21</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">2.28</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">angular.module(&#039;pascalprecht.translate&#039;)
+/**
+ * @ngdoc directive
+ * @name pascalprecht.translate.directive:translate
+ * @requires $interpolate, 
+ * @requires $compile, 
+ * @requires $parse, 
+ * @requires $rootScope
+ * @restrict AE
+ *
+ * @description
+ * Translates given translation id either through attribute or DOM content.
+ * Internally it uses $translate service to translate the translation id. It possible to
+ * pass an optional `translate-values` object literal as string into translation id.
+ *
+ * @param {string=} translate Translation id which could be either string or interpolated string.
+ * @param {string=} translate-values Values to pass into translation id. Can be passed as object literal string or interpolated object.
+ * @param {string=} translate-attr-ATTR translate Translation id and put it into ATTR attribute.
+ * @param {string=} translate-default will be used unless translation was successful
+ * @param {boolean=} translate-compile (default true if present) defines locally activation of {@link pascalprecht.translate.$translateProvider#methods_usePostCompiling}
+ * @param {boolean=} translate-keep-content (default true if present) defines that in case a KEY could not be translated, that the existing content is left in the innerHTML}
+ *
+ * @example
+   &lt;example module=&quot;ngView&quot;&gt;
+    &lt;file name=&quot;index.html&quot;&gt;
+      &lt;div ng-controller=&quot;TranslateCtrl&quot;&gt;
+
+        &lt;pre translate=&quot;TRANSLATION_ID&quot;&gt;&lt;/pre&gt;
+        &lt;pre translate&gt;TRANSLATION_ID&lt;/pre&gt;
+        &lt;pre translate translate-attr-title=&quot;TRANSLATION_ID&quot;&gt;&lt;/pre&gt;
+        &lt;pre translate=&quot;{{translationId}}&quot;&gt;&lt;/pre&gt;
+        &lt;pre translate&gt;{{translationId}}&lt;/pre&gt;
+        &lt;pre translate=&quot;WITH_VALUES&quot; translate-values=&quot;{value: 5}&quot;&gt;&lt;/pre&gt;
+        &lt;pre translate translate-values=&quot;{value: 5}&quot;&gt;WITH_VALUES&lt;/pre&gt;
+        &lt;pre translate=&quot;WITH_VALUES&quot; translate-values=&quot;{{values}}&quot;&gt;&lt;/pre&gt;
+        &lt;pre translate translate-values=&quot;{{values}}&quot;&gt;WITH_VALUES&lt;/pre&gt;
+        &lt;pre translate translate-attr-title=&quot;WITH_VALUES&quot; translate-values=&quot;{{values}}&quot;&gt;&lt;/pre&gt;
+        &lt;pre translate=&quot;WITH_CAMEL_CASE_KEY&quot; translate-value-camel-case-key=&quot;Hi&quot;&gt;&lt;/pre&gt;
+
+      &lt;/div&gt;
+    &lt;/file&gt;
+    &lt;file name=&quot;script.js&quot;&gt;
+      angular.module(&#039;ngView&#039;, [&#039;pascalprecht.translate&#039;])
+
+      .config(function ($translateProvider) {
+
+        $translateProvider.translations(&#039;en&#039;,{
+          &#039;TRANSLATION_ID&#039;: &#039;Hello there!&#039;,
+          &#039;WITH_VALUES&#039;: &#039;The following value is dynamic: {{value}}&#039;,
+          &#039;WITH_CAMEL_CASE_KEY&#039;: &#039;The interpolation key is camel cased: {{camelCaseKey}}&#039;
+        }).preferredLanguage(&#039;en&#039;);
+
+      });
+
+      angular.module(&#039;ngView&#039;).controller(&#039;TranslateCtrl&#039;, function ($scope) {
+        $scope.translationId = &#039;TRANSLATION_ID&#039;;
+
+        $scope.values = {
+          value: 78
+        };
+      });
+    &lt;/file&gt;
+    &lt;file name=&quot;scenario.js&quot;&gt;
+      it(&#039;should translate&#039;, function () {
+        inject(function ($rootScope, $compile) {
+          $rootScope.translationId = &#039;TRANSLATION_ID&#039;;
+
+          element = $compile(&#039;&lt;p translate=&quot;TRANSLATION_ID&quot;&gt;&lt;/p&gt;&#039;)($rootScope);
+          $rootScope.$digest();
+          expect(element.text()).toBe(&#039;Hello there!&#039;);
+
+          element = $compile(&#039;&lt;p translate=&quot;{{translationId}}&quot;&gt;&lt;/p&gt;&#039;)($rootScope);
+          $rootScope.$digest();
+          expect(element.text()).toBe(&#039;Hello there!&#039;);
+
+          element = $compile(&#039;&lt;p translate&gt;TRANSLATION_ID&lt;/p&gt;&#039;)($rootScope);
+          $rootScope.$digest();
+          expect(element.text()).toBe(&#039;Hello there!&#039;);
+
+          element = $compile(&#039;&lt;p translate&gt;{{translationId}}&lt;/p&gt;&#039;)($rootScope);
+          $rootScope.$digest();
+          expect(element.text()).toBe(&#039;Hello there!&#039;);
+
+          element = $compile(&#039;&lt;p translate translate-attr-title=&quot;TRANSLATION_ID&quot;&gt;&lt;/p&gt;&#039;)($rootScope);
+          $rootScope.$digest();
+          expect(element.attr(&#039;title&#039;)).toBe(&#039;Hello there!&#039;);
+
+          element = $compile(&#039;&lt;p translate=&quot;WITH_CAMEL_CASE_KEY&quot; translate-value-camel-case-key=&quot;Hello&quot;&gt;&lt;/p&gt;&#039;)($rootScope);
+          $rootScope.$digest();
+          expect(element.text()).toBe(&#039;The interpolation key is camel cased: Hello&#039;);
+        });
+      });
+    &lt;/file&gt;
+   &lt;/example&gt;
+ */
+.directive(&#039;translate&#039;, translateDirective);
+function translateDirective($translate, $interpolate, $compile, $parse, $rootScope) {
+
+  &#039;use strict&#039;;
+
+  /**
+   * @name trim
+   * @private
+   *
+   * @description
+   * trim polyfill
+   *
+   * @returns {string} The string stripped of whitespace from both ends
+   */
+  var trim = function() {
+    return this.toString().replace(/^\s+|\s+$/g, &#039;&#039;);
+  };
+
+  return {
+    restrict: &#039;AE&#039;,
+    scope: true,
+    priority: $translate.directivePriority(),
+    compile: function (tElement, tAttr) {
+
+      var translateValuesExist = (tAttr.translateValues) ?
+        tAttr.translateValues : undefined;
+
+      var translateInterpolation = (tAttr.translateInterpolation) ?
+        tAttr.translateInterpolation : undefined;
+
+      var translateValueExist = tElement[0].outerHTML.match(/translate-value-+/i);
+
+      var interpolateRegExp = &#039;^(.*)(&#039; + $interpolate.startSymbol() + &#039;.*&#039; + $interpolate.endSymbol() + &#039;)(.*)&#039;,
+          watcherRegExp = &#039;^(.*)&#039; + $interpolate.startSymbol() + &#039;(.*)&#039; + $interpolate.endSymbol() + &#039;(.*)&#039;;
+
+      return function linkFn(scope, iElement, iAttr) {
+
+        scope.interpolateParams = {};
+        scope.preText = &#039;&#039;;
+        scope.postText = &#039;&#039;;
+        scope.translateNamespace = getTranslateNamespace(scope);
+        var translationIds = {};
+
+        var initInterpolationParams = function (interpolateParams, iAttr, tAttr) {
+          // initial setup
+          if (iAttr.translateValues) {
+            angular.extend(interpolateParams, $parse(iAttr.translateValues)(scope.$parent));
+          }
+          // initially fetch all attributes if existing and fill the params
+          if (translateValueExist) {
+            for (var attr in tAttr) {
+              if (Object.prototype.hasOwnProperty.call(iAttr, attr) &amp;&amp; attr.substr(0, 14) === &#039;translateValue&#039; &amp;&amp; attr !== &#039;translateValues&#039;) {
+                var attributeName = angular.lowercase(attr.substr(14, 1)) + attr.substr(15);
+                interpolateParams[attributeName] = tAttr[attr];
+              }
+            }
+          }
+        };
+
+        // Ensures any change of the attribute &quot;translate&quot; containing the id will
+        // be re-stored to the scope&#039;s &quot;translationId&quot;.
+        // If the attribute has no content, the element&#039;s text value (white spaces trimmed off) will be used.
+        var observeElementTranslation = function (translationId) {
+
+          // Remove any old watcher
+          if (angular.isFunction(observeElementTranslation._unwatchOld)) {
+            observeElementTranslation._unwatchOld();
+            observeElementTranslation._unwatchOld = undefined;
+          }
+
+          if (angular.equals(translationId , &#039;&#039;) || !angular.isDefined(translationId)) {
+            var iElementText = trim.apply(iElement.text());
+
+            // Resolve translation id by inner html if required
+            var interpolateMatches = iElementText.match(interpolateRegExp);
+            // Interpolate translation id if required
+            if (angular.isArray(interpolateMatches)) {
+              scope.preText = interpolateMatches[1];
+              scope.postText = interpolateMatches[3];
+              translationIds.translate = $interpolate(interpolateMatches[2])(scope.$parent);
+              var watcherMatches = iElementText.match(watcherRegExp);
+              if (angular.isArray(watcherMatches) &amp;&amp; watcherMatches[2] &amp;&amp; watcherMatches[2].length) {
+                observeElementTranslation._unwatchOld = scope.$watch(watcherMatches[2], function (newValue) {
+                  translationIds.translate = newValue;
+                  updateTranslations();
+                });
+              }
+            } else {
+              // do not assigne the translation id if it is empty.
+              translationIds.translate = !iElementText ? undefined : iElementText;
+            }
+          } else {
+            translationIds.translate = translationId;
+          }
+          updateTranslations();
+        };
+
+        var observeAttributeTranslation = function (translateAttr) {
+          iAttr.$observe(translateAttr, function (translationId) {
+            translationIds[translateAttr] = translationId;
+            updateTranslations();
+          });
+        };
+
+        // initial setup with values
+        initInterpolationParams(scope.interpolateParams, iAttr, tAttr);
+
+        var firstAttributeChangedEvent = true;
+        iAttr.$observe(&#039;translate&#039;, function (translationId) {
+          if (typeof translationId === &#039;undefined&#039;) {
+            // case of element &quot;&lt;translate&gt;xyz&lt;/translate&gt;&quot;
+            observeElementTranslation(&#039;&#039;);
+          } else {
+            // case of regular attribute
+            if (translationId !== &#039;&#039; || !firstAttributeChangedEvent) {
+              translationIds.translate = translationId;
+              updateTranslations();
+            }
+          }
+          firstAttributeChangedEvent = false;
+        });
+
+        for (var translateAttr in iAttr) {
+          if (iAttr.hasOwnProperty(translateAttr) &amp;&amp; translateAttr.substr(0, 13) === &#039;translateAttr&#039; &amp;&amp; translateAttr.length &gt; 13) {
+            observeAttributeTranslation(translateAttr);
+          }
+        }
+
+        iAttr.$observe(&#039;translateDefault&#039;, function (value) {
+          scope.defaultText = value;
+          updateTranslations();
+        });
+
+        if (translateValuesExist) {
+          iAttr.$observe(&#039;translateValues&#039;, function (interpolateParams) {
+            if (interpolateParams) {
+              scope.$parent.$watch(function () {
+                angular.extend(scope.interpolateParams, $parse(interpolateParams)(scope.$parent));
+              });
+            }
+          });
+        }
+
+        if (translateValueExist) {
+          var observeValueAttribute = function (attrName) {
+            iAttr.$observe(attrName, function (value) {
+              var attributeName = angular.lowercase(attrName.substr(14, 1)) + attrName.substr(15);
+              scope.interpolateParams[attributeName] = value;
+            });
+          };
+          for (var attr in iAttr) {
+            if (Object.prototype.hasOwnProperty.call(iAttr, attr) &amp;&amp; attr.substr(0, 14) === &#039;translateValue&#039; &amp;&amp; attr !== &#039;translateValues&#039;) {
+              observeValueAttribute(attr);
+            }
+          }
+        }
+
+        // Master update function
+        var updateTranslations = function () {
+          for (var key in translationIds) {
+            if (translationIds.hasOwnProperty(key) &amp;&amp; translationIds[key] !== undefined) {
+              updateTranslation(key, translationIds[key], scope, scope.interpolateParams, scope.defaultText, scope.translateNamespace);
+            }
+          }
+        };
+
+        // Put translation processing function outside loop
+        var updateTranslation = function(translateAttr, translationId, scope, interpolateParams, defaultTranslationText, translateNamespace) {
+          if (translationId) {
+            // if translation id starts with &#039;.&#039; and translateNamespace given, prepend namespace
+            if (translateNamespace &amp;&amp; translationId.charAt(0) === &#039;.&#039;) {
+              translationId = translateNamespace + translationId;
+            }
+
+            $translate(translationId, interpolateParams, translateInterpolation, defaultTranslationText, scope.translateLanguage)
+              .then(function (translation) {
+                applyTranslation(translation, scope, true, translateAttr);
+              }, function (translationId) {
+                applyTranslation(translationId, scope, false, translateAttr);
+              });
+          } else {
+            // as an empty string cannot be translated, we can solve this using successful=false
+            applyTranslation(translationId, scope, false, translateAttr);
+          }
+        };
+
+        var applyTranslation = function (value, scope, successful, translateAttr) {
+          if (!successful) {
+            if (typeof scope.defaultText !== &#039;undefined&#039;) {
+              value = scope.defaultText;
+            }
+          }
+          if (translateAttr === &#039;translate&#039;) {
+            // default translate into innerHTML
+            if (successful || (!successful &amp;&amp; !$translate.isKeepContent() &amp;&amp; typeof iAttr.translateKeepContent === &#039;undefined&#039;)) {
+              iElement.empty().append(scope.preText + value + scope.postText);
+            }
+            var globallyEnabled = $translate.isPostCompilingEnabled();
+            var locallyDefined = typeof tAttr.translateCompile !== &#039;undefined&#039;;
+            var locallyEnabled = locallyDefined &amp;&amp; tAttr.translateCompile !== &#039;false&#039;;
+            if ((globallyEnabled &amp;&amp; !locallyDefined) || locallyEnabled) {
+              $compile(iElement.contents())(scope);
+            }
+          } else {
+            // translate attribute
+            var attributeName = iAttr.$attr[translateAttr];
+            if (attributeName.substr(0, 5) === &#039;data-&#039;) {
+              // ensure html5 data prefix is stripped
+              attributeName = attributeName.substr(5);
+            }
+            attributeName = attributeName.substr(15);
+            iElement.attr(attributeName, value);
+          }
+        };
+
+        if (translateValuesExist || translateValueExist || iAttr.translateDefault) {
+          scope.$watch(&#039;interpolateParams&#039;, updateTranslations, true);
+        }
+
+        // Replaced watcher on translateLanguage with event listener
+        scope.$on(&#039;translateLanguageChanged&#039;, updateTranslations);
+
+        // Ensures the text will be refreshed after the current language was changed
+        // w/ $translate.use(...)
+        var unbind = $rootScope.$on(&#039;$translateChangeSuccess&#039;, updateTranslations);
+
+        // ensure translation will be looked up at least one
+        if (iElement.text().length) {
+          if (iAttr.translate) {
+            observeElementTranslation(iAttr.translate);
+          } else {
+            observeElementTranslation(&#039;&#039;);
+          }
+        } else if (iAttr.translate) {
+          // ensure attribute will be not skipped
+          observeElementTranslation(iAttr.translate);
+        }
+        updateTranslations();
+        scope.$on(&#039;$destroy&#039;, unbind);
+      };
+    }
+  };
+}
+
+/**
+ * Returns the scope&#039;s namespace.
+ * @private
+ * @param scope
+ * @returns {string}
+ */
+function getTranslateNamespace(scope) {
+  &#039;use strict&#039;;
+  if (scope.translateNamespace) {
+    return scope.translateNamespace;
+  }
+  if (scope.$parent) {
+    return getTranslateNamespace(scope.$parent);
+  }
+}
+
+translateDirective.displayName = &#039;translateDirective&#039;;</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ cyclomatic }} <br>
+    Length : {{ halstead.length }} <br>
+    Difficulty : {{ halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>
