@@ -432,7 +432,7 @@ NG_DOCS={
     "guide": false
   },
   "html5Mode": false,
-  "editExample": true,
+  "editExample": false,
   "startPage": "/guide",
   "scripts": [
     "messageformat.js",
